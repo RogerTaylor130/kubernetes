@@ -232,6 +232,7 @@ func updatePodPorts(params map[string]string, podSpec *v1.PodSpec) (err error) {
 
 type BasicPod struct{}
 
+// implemnts the Generator interface at staging/src/k8s.io/kubectl/pkg/generate/generate.go -->> ParamNames returns the list of parameters that this generator uses
 func (BasicPod) ParamNames() []generate.GeneratorParam {
 	return []generate.GeneratorParam{
 		{Name: "labels", Required: false},

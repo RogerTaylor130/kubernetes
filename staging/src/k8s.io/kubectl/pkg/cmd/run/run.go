@@ -306,13 +306,20 @@ func (o *RunOptions) Run(f cmdutil.Factory, cmd *cobra.Command, args []string) e
 		return err
 	}
 
+	// RunPodV1GeneratorName = "run-pod/v1"
+	// generators -> map[string]generate.Generator{ RunPodV1GeneratorName: BasicPod{}, }
 	generators := generateversioned.GeneratorFn("run")
+	// generator -> BasicPod{} --> staging/src/k8s.io/kubectl/pkg/generate/versioned/run.go
 	generator, found := generators[generateversioned.RunPodV1GeneratorName]
 	if !found {
 		return cmdutil.UsageErrorf(cmd, "generator %q not found", generateversioned.RunPodV1GeneratorName)
 	}
 
+	// staging/src/k8s.io/kubectl/pkg/generate/versioned/run.go 235 --> names := []generate.GeneratorParam{{Name: "labels", Required: false},****}
+	// GeneratorParam struct ->  Name string; Required bool ->  staging/src/k8s.io/kubectl/pkg/generate/generate.go 37
 	names := generator.ParamNames()
+	// MakeParams is a utility that creates generator parameters from a command line
+	// params := map[string]interface{}; find all the params from names and store the cmd value to map[string]interface{} if cmd has it.
 	params := generate.MakeParams(cmd, names)
 	params["name"] = args[0]
 	if len(args) > 1 {
