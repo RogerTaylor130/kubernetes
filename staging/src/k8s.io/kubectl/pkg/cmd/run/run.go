@@ -637,6 +637,8 @@ func (o *RunOptions) createGeneratedObject(f cmdutil.Factory, cmd *cobra.Command
 		return nil, err
 	}
 
+	// k run test --override-type 123 --image nginx --overrides test
+	// --override-type will not be processed if overrides is not set
 	if overrider != nil {
 		obj, err = overrider.Apply(obj)
 		if err != nil {
