@@ -612,12 +612,14 @@ func (o *RunOptions) generateService(f cmdutil.Factory, cmd *cobra.Command, para
 }
 
 func (o *RunOptions) createGeneratedObject(f cmdutil.Factory, cmd *cobra.Command, generator generate.Generator, names []generate.GeneratorParam, params map[string]interface{}, overrider *cmdutil.Overrider) (*RunObject, error) {
+	//ValidateParams ensures that all required params are present in the params map
 	err := generate.ValidateParams(names, params)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Validate flag usage against selected generator. More tricky since --expose was added.
+	// Get/Complete v1.Pod{} -> metav1.TypeMeta, metav1.ObjectMeta, PodSpec
 	obj, err := generator.Generate(params)
 	if err != nil {
 		return nil, err
