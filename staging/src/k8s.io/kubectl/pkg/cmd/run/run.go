@@ -309,7 +309,7 @@ func (o *RunOptions) Run(f cmdutil.Factory, cmd *cobra.Command, args []string) e
 	// RunPodV1GeneratorName = "run-pod/v1"
 	// generators -> map[string]generate.Generator{ RunPodV1GeneratorName: BasicPod{}, }
 	generators := generateversioned.GeneratorFn("run")
-	// generator -> BasicPod{} --> staging/src/k8s.io/kubectl/pkg/generate/versioned/run.go
+	// generator -> BasicPod{} empty struct {} --> staging/src/k8s.io/kubectl/pkg/generate/versioned/run.go
 	generator, found := generators[generateversioned.RunPodV1GeneratorName]
 	if !found {
 		return cmdutil.UsageErrorf(cmd, "generator %q not found", generateversioned.RunPodV1GeneratorName)
