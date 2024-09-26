@@ -78,8 +78,10 @@ type MetadataAccessor interface {
 type RESTScopeName string
 
 const (
+	//like pods,deployment.... that are namespaced
 	RESTScopeNameNamespace RESTScopeName = "namespace"
-	RESTScopeNameRoot      RESTScopeName = "root"
+	//like node, pv.... that are not namespaced
+	RESTScopeNameRoot RESTScopeName = "root"
 )
 
 // RESTScope contains the information needed to deal with REST resources that are in a resource hierarchy
