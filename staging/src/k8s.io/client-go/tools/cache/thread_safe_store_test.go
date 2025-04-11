@@ -18,12 +18,126 @@ package cache
 
 import (
 	"fmt"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestUsingDeltaToAddStore(t *testing.T) {
+	indexName1 := "namespace"
+	indexName2 := "labela"
+	indexFunc2 := func(obj interface{}) ([]string, error) {
+		return []string{obj.(*v1.Pod).Labels["a"]}, nil
+	}
+	indexName3 := "labelb"
+	indexFunc3 := func(obj interface{}) ([]string, error) {
+		//return []string{obj.(*v1.Pod).Labels["b"]}, nil
+		return strings.Split(obj.(*v1.Pod).Labels["b"], "-"), nil
+	}
+	indexers := Indexers{
+		indexName1: MetaNamespaceIndexFunc,
+		indexName2: indexFunc2,
+		indexName3: indexFunc3,
+	}
+	pod1 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod1",
+			Namespace: "default",
+			Labels: map[string]string{
+				"test": "yes",
+				"b":    "pod1-b-val",
+				"a":    "a-val",
+			},
+		},
+		Spec: v1.PodSpec{
+			RestartPolicy: v1.RestartPolicyAlways,
+		},
+	}
+	pod2 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod2",
+			Namespace: "foo",
+			Labels: map[string]string{
+				"a": "a-val",
+				"b": "b-val1"},
+		},
+	}
+
+	pod3 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod3",
+			Namespace: "default",
+			Labels: map[string]string{
+				"test": "yes",
+				"b":    "pod3-b-val",
+				"a":    "a-val",
+			},
+		},
+		Spec: v1.PodSpec{
+			RestartPolicy: v1.RestartPolicyAlways,
+		},
+	}
+	fmt.Println("Index funcs from indexName1 -- namespace:")
+	indexName1FromObj1, _ := MetaNamespaceIndexFunc(pod1)
+	indexName1FromObj2, _ := MetaNamespaceIndexFunc(pod2)
+	indexName1FromObj3, _ := MetaNamespaceIndexFunc(pod3)
+	fmt.Println("\tpod1:", indexName1FromObj1)
+	fmt.Println("\tpod2", indexName1FromObj2)
+	fmt.Println("\tpod3", indexName1FromObj3)
+
+	fmt.Println("Index funcs from indexName2 -- labela:")
+	indexName2FromObj1, _ := indexFunc2(pod1)
+	indexName2FromObj2, _ := indexFunc2(pod2)
+	indexName2FromObj3, _ := indexFunc2(pod3)
+	fmt.Println("\tpod1:", indexName2FromObj1)
+	fmt.Println("\tpod2", indexName2FromObj2)
+	fmt.Println("\tpod3", indexName2FromObj3)
+
+	fmt.Println("Index funcs from indexName3 -- labelb:")
+	indexName3FromObj1, _ := indexFunc3(pod1)
+	indexName3FromObj2, _ := indexFunc3(pod2)
+	indexName3FromObj3, _ := indexFunc3(pod3)
+	fmt.Println("\tpod1:", indexName3FromObj1)
+	fmt.Println("\tpod2", indexName3FromObj2)
+	fmt.Println("\tpod3", indexName3FromObj3)
+
+	fmt.Println("Key funcs:")
+	key1, _ := DeletionHandlingMetaNamespaceKeyFunc(pod1)
+	fmt.Println("\t", key1)
+	key2, _ := DeletionHandlingMetaNamespaceKeyFunc(pod2)
+	fmt.Println("\t", key2)
+	key3, _ := DeletionHandlingMetaNamespaceKeyFunc(pod3)
+	fmt.Println("\t", key3)
+	fmt.Println("----------")
+	indices := Indices{}
+
+	store := NewThreadSafeStore(indexers, indices)
+
+	store.Add(key1, pod1)
+
+	store.Add(key2, pod2)
+
+	store.Add(key3, pod3)
+
+	threadSafeMapObj := store.(*threadSafeMap)
+
+	indicesMap := threadSafeMapObj.index.indices
+	for k, v := range indicesMap {
+		fmt.Println(k)
+		fmt.Println("\t", v)
+	}
+	fmt.Println("----------")
+	set := indicesMap[indexName1]["foo"]
+	fmt.Println("\n", set)
+	fmt.Println("----------")
+	fmt.Println(threadSafeMapObj.index.indices[indexName1]["default"])
+	fmt.Println(store.IndexKeys(indexName1, "default"))
+
+}
 
 func TestThreadSafeStoreDeleteRemovesEmptySetsFromIndex(t *testing.T) {
 	testIndexer := "testIndexer"
@@ -169,7 +283,7 @@ func BenchmarkIndexer(b *testing.B) {
 	testIndexer := "testIndexer"
 
 	indexers := Indexers{
-		testIndexer: func(obj interface{}) (strings []string, e error) {
+		testIndexer: func(obj interface{}) ([]string, error) {
 			indexes := []string{obj.(string)}
 			return indexes, nil
 		},

@@ -154,7 +154,7 @@ func (i *storeIndex) updateSingleIndex(name string, oldObj interface{}, newObj i
 			panic(fmt.Errorf("unable to calculate an index entry for key %q on index %q: %v", key, name, err))
 		}
 	} else {
-		oldIndexValues = oldIndexValues[:0]
+		oldIndexValues = oldIndexValues[:0] //NOTE why this? seems like redundant
 	}
 
 	if newObj != nil {
