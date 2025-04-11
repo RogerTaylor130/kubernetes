@@ -130,7 +130,7 @@ type Reflector struct {
 	ShouldResync func() bool
 	// MaxInternalErrorRetryDuration defines how long we should retry internal errors returned by watch.
 	MaxInternalErrorRetryDuration time.Duration
-	// UseWatchList if turned on instructs the reflector to open a stream to bring data from the API server.
+	// useWatchList if turned on instructs the reflector to open a stream to bring data from the API server.
 	// Streaming has the primary advantage of using fewer server's resources to fetch data.
 	//
 	// The old behaviour establishes a LIST request which gets data in chunks.
@@ -140,7 +140,7 @@ type Reflector struct {
 	// See https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/3157-watch-list#design-details
 	//
 	// TODO(#115478): Consider making reflector.UseWatchList a private field. Since we implemented "api streaming" on the etcd storage layer it should work.
-	UseWatchList *bool
+	useWatchList *bool
 }
 
 func (r *Reflector) Name() string {
@@ -293,10 +293,10 @@ func NewReflectorWithOptions(lw ListerWatcher, expectedType interface{}, store R
 		r.expectedGVK = getExpectedGVKFromObject(expectedType)
 	}
 
-	// don't overwrite UseWatchList if already set
+	// don't overwrite useWatchList if already set
 	// because the higher layers (e.g. storage/cacher) disabled it on purpose
-	if r.UseWatchList == nil {
-		r.UseWatchList = ptr.To(clientfeatures.FeatureGates().Enabled(clientfeatures.WatchListClient))
+	if r.useWatchList == nil {
+		r.useWatchList = ptr.To(clientfeatures.FeatureGates().Enabled(clientfeatures.WatchListClient))
 	}
 
 	return r
@@ -403,7 +403,7 @@ func (r *Reflector) ListAndWatchWithContext(ctx context.Context) error {
 	logger.V(3).Info("Listing and watching", "type", r.typeDescription, "reflector", r.name)
 	var err error
 	var w watch.Interface
-	useWatchList := ptr.Deref(r.UseWatchList, false)
+	useWatchList := ptr.Deref(r.useWatchList, false)
 	fallbackToList := !useWatchList
 
 	if useWatchList {

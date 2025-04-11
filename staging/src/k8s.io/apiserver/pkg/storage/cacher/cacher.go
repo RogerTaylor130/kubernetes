@@ -439,7 +439,7 @@ func NewCacherFromConfig(config Config) (*Cacher, error) {
 	reflector.MaxInternalErrorRetryDuration = time.Second * 30
 	// since the watch-list is provided by the watch cache instruct
 	// the reflector to issue a regular LIST against the store
-	reflector.UseWatchList = ptr.To(false)
+	reflector.useWatchList = ptr.To(false)
 
 	cacher.watchCache = watchCache
 	cacher.reflector = reflector

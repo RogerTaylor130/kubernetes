@@ -20,6 +20,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	clientfeatures "k8s.io/client-go/features"
+	"k8s.io/utils/ptr"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -76,6 +78,10 @@ func TestCloseWatchChannelOnError(t *testing.T) {
 		t.Errorf("the cancellation is at least %s late", wait.ForeverTestTimeout.String())
 		break
 	}
+}
+
+func TestReturnedValue(t *testing.T) {
+	assert.Equal(t, true, *ptr.To(clientfeatures.FeatureGates().Enabled(clientfeatures.WatchListClient)))
 }
 
 func TestRunUntil(t *testing.T) {

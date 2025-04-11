@@ -149,7 +149,7 @@ func TestWatchList(t *testing.T) {
 			}},
 		},
 		{
-			name:                    "the reflector uses the old LIST/WATCH semantics if the UseWatchList is turned off",
+			name:                    "the reflector uses the old LIST/WATCH semantics if the useWatchList is turned off",
 			disableUseWatchList:     true,
 			closeAfterWatchRequests: 1,
 			podList: &v1.PodList{
@@ -492,7 +492,7 @@ func TestWatchList(t *testing.T) {
 			listWatcher.customListResponse = scenario.podList
 			listWatcher.closeAfterListRequests = scenario.closeAfterListRequests
 			if scenario.disableUseWatchList {
-				reflector.UseWatchList = ptr.To(false)
+				reflector.useWatchList = ptr.To(false)
 			}
 
 			err := reflector.ListAndWatchWithContext(ctx)
@@ -582,7 +582,7 @@ func testData(ctx context.Context) (*fakeListWatcher, Store, *Reflector, context
 		},
 	}
 	r := NewReflector(lw, &v1.Pod{}, s, 0)
-	r.UseWatchList = ptr.To(true)
+	r.useWatchList = ptr.To(true)
 
 	return lw, s, r, ctx, cancel
 }
