@@ -232,6 +232,7 @@ func updatePodPorts(params map[string]string, podSpec *v1.PodSpec) (err error) {
 
 type BasicPod struct{}
 
+// implemnts the Generator interface at staging/src/k8s.io/kubectl/pkg/generate/generate.go -->> ParamNames returns the list of parameters that this generator uses
 func (BasicPod) ParamNames() []generate.GeneratorParam {
 	return []generate.GeneratorParam{
 		{Name: "labels", Required: false},
@@ -257,11 +258,20 @@ func (BasicPod) ParamNames() []generate.GeneratorParam {
 }
 
 func (BasicPod) Generate(genericParams map[string]interface{}) (runtime.Object, error) {
+
+	//kubectl run NAME --image=image [--env="key=value"] [--port=port] [--dry-run=server|client] [--overrides=inline-json] [--command] -- [COMMAND] [args...] [options]
+
+	//getArgs returns arguments for the container command.
+	//    --command=false:
+	//        If true and extra arguments are present, use them as the 'command' field in the container, rather than the 'args' field which is the default.
 	args, err := getArgs(genericParams)
 	if err != nil {
 		return nil, err
 	}
 
+	//getEnvs returns environment variables.
+	//    --env=[]:
+	//        Environment variables to set in the container.
 	envs, err := getEnvs(genericParams)
 	if err != nil {
 		return nil, err
@@ -272,6 +282,7 @@ func (BasicPod) Generate(genericParams map[string]interface{}) (runtime.Object, 
 		return nil, err
 	}
 
+	//getParams returns map of generic parameters.
 	params, err := getParams(genericParams)
 	if err != nil {
 		return nil, err
@@ -301,6 +312,8 @@ func (BasicPod) Generate(genericParams map[string]interface{}) (runtime.Object, 
 		return nil, err
 	}
 
+	// HandleResourceRequirementsV1 parses the limits and requests parameters if specified
+	// and returns ResourceRequirements.
 	resourceRequirements, err := HandleResourceRequirementsV1(params)
 	if err != nil {
 		return nil, err
